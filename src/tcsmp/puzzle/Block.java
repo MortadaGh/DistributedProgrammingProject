@@ -2,32 +2,48 @@ package tcsmp.puzzle;
 
 import java.util.Arrays;
 
+import tcsmp.utils.DataUtils;
+
 public class Block {
 
-	private char[] directions;
+	private String[] directions;
+	
+	public Block() {
+		directions = new String[4];
+		this.fillDirections();
+	}
 	
 	public Block(String directions) {
-		this.directions = directions.toCharArray();
+		if(directions != null && directions.length() == 4) {
+			this.directions = directions.substring(0,4).split("");
+		}
 	}
 	
-	public void fillDirections() {
-		
+	private void fillDirections() {
+		if(directions != null) {
+			for(int i=0; i < directions.length; i++) {
+				if(directions[i] == null || directions[i].isEmpty()) {
+					directions[i] = DataUtils.generateRandomChar();
+				}
+			}
+		}
 	}
 
-	public char[] getDirections() {
+	public String[] getDirections() {
 		return directions;
 	}
 
-	public void setDirections(char[] directions) {
+	public void setDirections(String[] directions) {
 		this.directions = directions;
-	}
-
-	public Block parse(String s) {
-		return null;
 	}
 	
 	@Override
 	public String toString() {
-		return Arrays.toString(directions);
+		String s = "";
+		if(directions != null) {
+			for(int i=0; i < directions.length; i++)
+				s += directions[i];
+		}
+		return s;
 	}
 }
