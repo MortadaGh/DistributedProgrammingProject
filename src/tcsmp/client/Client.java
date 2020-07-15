@@ -35,11 +35,13 @@ public class Client {
             
             out.writeUTF(req);
             message_in = in.readUTF();
-            if(!message_in.equals("REGISTRATION OK")){
+            if(!message_in.startsWith("REGISTRATION OK")){
                 System.out.println(message_in);
                 socket.close();
                 exit(0);
             }
+            
+            System.out.println(message_in);
             
             ClientThread cl = new ClientThread(socket);
             cl.start();
@@ -54,10 +56,13 @@ public class Client {
                 	message_out = message_out + ":" + input.nextLine();
                 	out.writeUTF(message_out);
                 } else if(message_out.equals("Message")) {
-                	System.out.println("Enter the name of your client: ");
+                	System.out.print("Enter the destination email: ");
                 	String cname = input.nextLine();
+                	System.out.print("Enter the subject: ");
+                	String subject = input.nextLine();
                 	System.out.println("Enter the content of your message to send: ");
-                	message_out = message_out + ":" + cname + ":" + input.nextLine();
+                	String content = input.nextLine();
+                	message_out += ":" + cname + ":" + subject + ":" + content;
                 	out.writeUTF(message_out);
                 } else {
                 	System.out.println("The command is incorrect please enter again.");                	
