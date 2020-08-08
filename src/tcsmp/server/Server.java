@@ -4,35 +4,43 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-public class Server {
-	private static ServerSocket serverSocket;
-	private static Socket link;
-	private static final int PORT = 1234;
-	private static String domainName;
+public class Server implements Runnable {
 	
-	public static ArrayList<ServerThread> serverThreads = new ArrayList<ServerThread>();
+	private Integer port;
+	private String domainName;
+	private Boolean isStarted = false;
+	private Thread currentThread;
+	
+	private ServerSocket serverSocket;
+	private Socket link;
+	
+	private ArrayList<Socket> clientsSockets;
+	private ArrayList<ServerThread> serverThreads;
 
-	public static void main(String[] args) {
+	public Server(String domainName, Integer port) {
+		this.port = port;
+		this.domainName = domainName;
 
-		ArrayList<Socket> clientsSockets = new ArrayList<Socket>();
 		try {
-			serverSocket = new ServerSocket(PORT);
+			serverSocket = new ServerSocket(port);
+			clientsSockets = new ArrayList<Socket>();
+			serverThreads = new ArrayList<ServerThread>();
+			isStarted = true;
+			currentThread = new Thread(this);
 		} catch (IOException ex) {
+			isStarted = false;
 			System.out.println("Unable to connect to this port");
-			System.exit(0);
+//			System.exit(0);
 		}
-		
-		Scanner in = new Scanner(System.in);
-		final String DOMAIN_NAME_PATTERN = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
-		System.out.print("Enter domain name: ");
-		domainName = in.nextLine();
-		if(!domainName.matches(DOMAIN_NAME_PATTERN)) {
-			System.out.println("Invalid domain name");
-			System.exit(0);
-		}
-		
+	}
+
+	public void start() {
+		currentThread.start();
+	}
+	
+	public void run() {
+		System.out.println("Server <" + domainName + "> running on port <" + port + "> ...");
 		try {
 			while (true) {
 				link = serverSocket.accept();
@@ -48,4 +56,5 @@ public class Server {
 			ex.printStackTrace();
 		}
 	}
+
 }

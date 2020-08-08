@@ -71,13 +71,13 @@ public class ServerThread extends Thread {
 				} else if (tokens[0].equals("Message")) {
 					String dest = tokens[1];
 					boolean found = false;
-					for (ServerThread c : Server.serverThreads) {
-						if (c.email.equals(dest)) {
-							found = true;
-							c.out.writeUTF("Message from " + email + " :\n" + "Subject: " + tokens[2] + "\n" + tokens[3]);
-							break;
-						}
-					}
+//					for (ServerThread c : Server.serverThreads) {
+//						if (c.email.equals(dest)) {
+//							found = true;
+//							c.out.writeUTF("Message from " + email + " :\n" + "Subject: " + tokens[2] + "\n" + tokens[3]);
+//							break;
+//						}
+//					}
 					if (!found) {
 						out.writeUTF("Client not found");
 					}
