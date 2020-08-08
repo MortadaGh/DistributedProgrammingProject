@@ -1,13 +1,21 @@
 package tcsmp.server;
 
-import java.util.Scanner;
+import java.net.UnknownHostException;
+import java.util.Map.Entry;
 
 import tcsmp.utils.DataUtils;
+import tcsmp.utils.HostPort;
 
 public class ServerMain {
 
-	@SuppressWarnings({ "resource", "unlikely-arg-type" })
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnknownHostException {
+		
+		for(Entry<String, HostPort> o : DataUtils.servers.entrySet()) {
+			Server server = new Server(o.getKey(), o.getValue().getPort());
+			server.start();
+		}
+		
+		/*
 		while (true) {
 			Scanner in = new Scanner(System.in);
 
@@ -27,23 +35,28 @@ public class ServerMain {
 				if (port < 1000)
 					throw new Exception();
 
-				if (DataUtils.servers.containsKey(port)) {
+				if (DataUtils.servers.containsValue(port)) {
 					System.out.println("port number is taken!");
+					throw new Exception();
 				}
 			} catch (Exception e) {
 				System.out.println("Invalid port number!");
 				System.exit(0);
 			}
-
-			Server server = new Server(domainName, port);
-			DataUtils.servers.put(domainName, port);
-			server.start();
 			
-			System.out.println("Running Servers: ");
-			DataUtils.servers.forEach((d, p) -> {
-				System.out.println(d + " : " + p);
-			});
-			System.out.println();
+			String host = InetAddress.getLocalHost().getHostAddress();
+			
+			HostPort hp = new HostPort(host, port);
+			Server server = new Server(domainName, port);
+			DataUtils.servers.put(domainName, hp);
+			server.start();
+
+			System.out.println("====================");
+			System.out.println("Running Servers:");
+			System.out.println("----------------");
+			DataUtils.servers.forEach((d, p) -> System.out.println(d + " : " + p));
+			System.out.println("====================");
 		}
+		*/
 	}
 }

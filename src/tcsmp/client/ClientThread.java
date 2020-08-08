@@ -20,11 +20,9 @@ class ClientThread extends Thread {
 	}
 
 	public void run() {
-		String message_in;
 		while (true) {
 			try {
-				message_in = in.readUTF();
-				System.out.println(message_in);
+				System.out.println(in.readUTF());
 			} catch (SocketException ex) {
 				break;
 			} catch (IOException ex) {
