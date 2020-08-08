@@ -11,8 +11,6 @@ public class ClientMain {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
 
-		System.out.println("TEST : " + DataUtils.servers);
-
 		// Register
 		System.out.print("Enter your email: ");
 		String email = in.nextLine();
@@ -61,7 +59,7 @@ public class ClientMain {
 		try {
 			Client client = new Client(email, hp);
 			client.start();
-		} catch (IOException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		in.close();

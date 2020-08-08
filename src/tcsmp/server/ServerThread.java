@@ -4,11 +4,15 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import tcsmp.exceptions.RegistrationException;
+import tcsmp.utils.Email;
 
 public class ServerThread extends Thread {
 
@@ -18,6 +22,8 @@ public class ServerThread extends Thread {
 	private Socket socket;
 	private DataInputStream in;
 	private DataOutputStream out;
+	private ObjectInputStream objectIn;
+	private ObjectOutputStream objectOut;
 
 	public ServerThread(Socket link, Server server) {
 		this.socket = link;
@@ -26,6 +32,8 @@ public class ServerThread extends Thread {
 		try {
 			in = new DataInputStream(socket.getInputStream());
 			out = new DataOutputStream(socket.getOutputStream());
+			objectOut = new ObjectOutputStream(socket.getOutputStream());
+			objectIn = new ObjectInputStream(socket.getInputStream());
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -47,7 +55,8 @@ public class ServerThread extends Thread {
 //			email = tokens[1] + "@" + server.getDomainName();
 			email = tokens[1];
 			out.writeUTF("REGISTRATION OK - " + email);
-
+			server.getEmails().put(email, new ArrayList<Email>());
+			
 			do {
 				message_in = in.readUTF();
 				tokens = message_in.split(":", 4);
@@ -55,30 +64,31 @@ public class ServerThread extends Thread {
 				if (message_in.equals("END")) {
 					System.out.println("Bye bye!");
 					break;
-				} else if (tokens[0].equals("Broadcast")) {
-					String bc = tokens[1];
-					for (Socket client : server.getClientsSockets()) {
-						if (client.equals(socket)) {
-							continue;
-						}
-						client.getOutputStream();
-						DataOutputStream clientOut = new DataOutputStream(client.getOutputStream());
-						clientOut.writeUTF(tokens[0] + "<" + email + "> : " + bc);
-					}
 				} else if (tokens[0].equals("Message")) {
+					Email email = (Email) objectIn.readObject();
+					System.out.println("Email = " + email);
 					String dest = tokens[1];
+					
+					server.getEmails().get(dest).add(email);
+					
+					System.out.println("server.getEmails() = " + server.getEmails());
+					
 					boolean found = false;
 					for (ServerThread c : server.getServerThreads()) {
 						if (c.email.equals(dest)) {
 							found = true;
-							c.out.writeUTF(
-									"Message from " + email + " :\n" + "Subject: " + tokens[2] + "\n" + tokens[3]);
+//							c.out.writeUTF("Email = " + email);
+//							c.out.writeUTF("Message from " + dest + " :\n" + "Subject: " + tokens[2] + "\n" + tokens[3]);
 							break;
 						}
 					}
 					if (!found) {
 						out.writeUTF("Client not found");
 					}
+				}  else if (tokens[0].equals("Refresh")) {
+					objectOut.writeUTF("Refresh");
+					objectOut.writeObject(server.getEmails().get(email));
+//					objectOut.close();
 				}
 			} while (true);
 
@@ -92,6 +102,9 @@ public class ServerThread extends Thread {
 			closeconnection();
 		} catch (IOException ex) {
 			ex.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			System.out.println("ClassNotFoundException");
+			e.printStackTrace();
 		}
 	}
 

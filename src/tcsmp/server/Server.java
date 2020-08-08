@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import tcsmp.utils.Email;
 
 public class Server implements Runnable {
 
@@ -17,6 +21,7 @@ public class Server implements Runnable {
 
 	private ArrayList<Socket> clientsSockets;
 	private ArrayList<ServerThread> serverThreads;
+	private HashMap<String,List<Email>> emails;
 
 	public Server(String domainName, Integer port) {
 		this.port = port;
@@ -26,6 +31,7 @@ public class Server implements Runnable {
 			serverSocket = new ServerSocket(port);
 			clientsSockets = new ArrayList<Socket>();
 			serverThreads = new ArrayList<ServerThread>();
+			emails = new HashMap<String,List<Email>>();
 			isStarted = true;
 			currentThread = new Thread(this);
 		} catch (IOException ex) {
@@ -119,5 +125,13 @@ public class Server implements Runnable {
 
 	public void setServerThreads(ArrayList<ServerThread> serverThreads) {
 		this.serverThreads = serverThreads;
+	}
+
+	public HashMap<String,List<Email>> getEmails() {
+		return emails;
+	}
+
+	public void setEmails(HashMap<String,List<Email>> emails) {
+		this.emails = emails;
 	}
 }
