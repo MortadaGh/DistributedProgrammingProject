@@ -5,8 +5,6 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,19 +12,17 @@ import tcsmp.exceptions.RegistrationException;
 
 public class ServerThread extends Thread {
 
-	private Socket socket;
-	private ArrayList<Socket> clientsSockets;
 	private String email;
-	
+	private Server server;
+
+	private Socket socket;
 	private DataInputStream in;
 	private DataOutputStream out;
-	private String domainName;
-	
-	public ServerThread(Socket socket, ArrayList<Socket> clientsSockets, String domainName) {
-		this.socket = socket;
-		this.clientsSockets = clientsSockets;
-		this.domainName = domainName;
-		
+
+	public ServerThread(Socket link, Server server) {
+		this.socket = link;
+		this.server = server;
+
 		try {
 			in = new DataInputStream(socket.getInputStream());
 			out = new DataOutputStream(socket.getOutputStream());
@@ -48,7 +44,8 @@ public class ServerThread extends Thread {
 				throw new RegistrationException();
 			}
 
-			email = tokens[1] + "@" + domainName;
+//			email = tokens[1] + "@" + server.getDomainName();
+			email = tokens[1];
 			out.writeUTF("REGISTRATION OK - " + email);
 
 			do {
@@ -60,7 +57,7 @@ public class ServerThread extends Thread {
 					break;
 				} else if (tokens[0].equals("Broadcast")) {
 					String bc = tokens[1];
-					for (Socket client : clientsSockets) {
+					for (Socket client : server.getClientsSockets()) {
 						if (client.equals(socket)) {
 							continue;
 						}
@@ -71,10 +68,11 @@ public class ServerThread extends Thread {
 				} else if (tokens[0].equals("Message")) {
 					String dest = tokens[1];
 					boolean found = false;
-					for (ServerThread c : Server.serverThreads) {
+					for (ServerThread c : server.getServerThreads()) {
 						if (c.email.equals(dest)) {
 							found = true;
-							c.out.writeUTF("Message from " + email + " :\n" + "Subject: " + tokens[2] + "\n" + tokens[3]);
+							c.out.writeUTF(
+									"Message from " + email + " :\n" + "Subject: " + tokens[2] + "\n" + tokens[3]);
 							break;
 						}
 					}
@@ -98,7 +96,7 @@ public class ServerThread extends Thread {
 	}
 
 	public void closeconnection() {
-		clientsSockets.remove(this.socket);
+		server.getClientsSockets().remove(this.socket);
 		try {
 			socket.close();
 		} catch (IOException ex) {

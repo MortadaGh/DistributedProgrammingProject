@@ -4,39 +4,47 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-public class Server {
-	private static ServerSocket serverSocket;
-	private static Socket link;
-	private static final int PORT = 1234;
-	private static String domainName;
-	
-	public static ArrayList<ServerThread> serverThreads = new ArrayList<ServerThread>();
+public class Server implements Runnable {
 
-	public static void main(String[] args) {
+	private Integer port;
+	private String domainName;
+	private Boolean isStarted = false;
+	private Thread currentThread;
 
-		ArrayList<Socket> clientsSockets = new ArrayList<Socket>();
+	private ServerSocket serverSocket;
+	private Socket link;
+
+	private ArrayList<Socket> clientsSockets;
+	private ArrayList<ServerThread> serverThreads;
+
+	public Server(String domainName, Integer port) {
+		this.port = port;
+		this.domainName = domainName;
+
 		try {
-			serverSocket = new ServerSocket(PORT);
+			serverSocket = new ServerSocket(port);
+			clientsSockets = new ArrayList<Socket>();
+			serverThreads = new ArrayList<ServerThread>();
+			isStarted = true;
+			currentThread = new Thread(this);
 		} catch (IOException ex) {
+			isStarted = false;
 			System.out.println("Unable to connect to this port");
-			System.exit(0);
+//			System.exit(0);
 		}
-		
-		Scanner in = new Scanner(System.in);
-		final String DOMAIN_NAME_PATTERN = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
-		System.out.print("Enter domain name: ");
-		domainName = in.nextLine();
-		if(!domainName.matches(DOMAIN_NAME_PATTERN)) {
-			System.out.println("Invalid domain name");
-			System.exit(0);
-		}
-		
+	}
+
+	public void start() {
+		currentThread.start();
+	}
+
+	public void run() {
+//		System.out.println("Server <" + domainName + "> running on port <" + port + "> ...");
 		try {
 			while (true) {
 				link = serverSocket.accept();
-				ServerThread serverThread = new ServerThread(link, clientsSockets, domainName);
+				ServerThread serverThread = new ServerThread(link, this);
 				serverThreads.add(serverThread);
 				clientsSockets.add(link);
 
@@ -47,5 +55,69 @@ public class Server {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+	}
+
+	public Integer getPort() {
+		return port;
+	}
+
+	public void setPort(Integer port) {
+		this.port = port;
+	}
+
+	public String getDomainName() {
+		return domainName;
+	}
+
+	public void setDomainName(String domainName) {
+		this.domainName = domainName;
+	}
+
+	public Boolean getIsStarted() {
+		return isStarted;
+	}
+
+	public void setIsStarted(Boolean isStarted) {
+		this.isStarted = isStarted;
+	}
+
+	public Thread getCurrentThread() {
+		return currentThread;
+	}
+
+	public void setCurrentThread(Thread currentThread) {
+		this.currentThread = currentThread;
+	}
+
+	public ServerSocket getServerSocket() {
+		return serverSocket;
+	}
+
+	public void setServerSocket(ServerSocket serverSocket) {
+		this.serverSocket = serverSocket;
+	}
+
+	public Socket getLink() {
+		return link;
+	}
+
+	public void setLink(Socket link) {
+		this.link = link;
+	}
+
+	public ArrayList<Socket> getClientsSockets() {
+		return clientsSockets;
+	}
+
+	public void setClientsSockets(ArrayList<Socket> clientsSockets) {
+		this.clientsSockets = clientsSockets;
+	}
+
+	public ArrayList<ServerThread> getServerThreads() {
+		return serverThreads;
+	}
+
+	public void setServerThreads(ArrayList<ServerThread> serverThreads) {
+		this.serverThreads = serverThreads;
 	}
 }
