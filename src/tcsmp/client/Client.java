@@ -69,7 +69,7 @@ public class Client {
 		cl.start();
 
 		System.out.println("To close the connection, enter END\n"
-				+ "To Message a client, enter Message"
+				+ "To Message a client, enter Message\n"
 				+ "To Refresh Messages, enter Refresh");
 		message_out = input.nextLine();
 
