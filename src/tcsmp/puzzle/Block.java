@@ -1,11 +1,14 @@
 package tcsmp.puzzle;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 import tcsmp.utils.DataUtils;
 
-public class Block {
+public class Block implements Serializable {
 
+	private static final long serialVersionUID = -8477888328672503777L;
+	
 	private String[] directions;
 	
 	public Block() {

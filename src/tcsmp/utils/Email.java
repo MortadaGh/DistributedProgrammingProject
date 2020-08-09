@@ -7,11 +7,13 @@ public class Email implements Serializable {
 	private static final long serialVersionUID = -6663081048156538847L;
 
 	private String to;
+	private String from;
 	private String subject;
 	private String content;
-	
-	public Email(String to, String subject, String content) {
+
+	public Email(String to, String from, String subject, String content) {
 		this.to = to;
+		this.from = from;
 		this.subject = subject;
 		this.content = content;
 	}
@@ -22,6 +24,14 @@ public class Email implements Serializable {
 
 	public void setTo(String to) {
 		this.to = to;
+	}
+
+	public String getFrom() {
+		return from;
+	}
+
+	public void setFrom(String from) {
+		this.from = from;
 	}
 
 	public String getSubject() {
@@ -42,6 +52,6 @@ public class Email implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Email [to=" + to + ", subject=" + subject + ", content=" + content + "]";
+		return "Email [to=" + to + ", from=" + from + ", subject=" + subject + ", content=" + content + "]";
 	}
 }

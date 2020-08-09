@@ -21,7 +21,7 @@ public class Server implements Runnable {
 
 	private ArrayList<Socket> clientsSockets;
 	private ArrayList<ServerThread> serverThreads;
-	private HashMap<String,List<Email>> emails;
+	private HashMap<String, List<Email>> emails;
 
 	public Server(String domainName, Integer port) {
 		this.port = port;
@@ -31,7 +31,7 @@ public class Server implements Runnable {
 			serverSocket = new ServerSocket(port);
 			clientsSockets = new ArrayList<Socket>();
 			serverThreads = new ArrayList<ServerThread>();
-			emails = new HashMap<String,List<Email>>();
+			emails = new HashMap<String, List<Email>>();
 			isStarted = true;
 			currentThread = new Thread(this);
 		} catch (IOException ex) {
@@ -53,7 +53,6 @@ public class Server implements Runnable {
 				ServerThread serverThread = new ServerThread(link, this);
 				serverThreads.add(serverThread);
 				clientsSockets.add(link);
-
 				serverThread.start();
 				System.out.println(domainName + ": Clients # = " + clientsSockets.size());
 			}
@@ -126,11 +125,11 @@ public class Server implements Runnable {
 		this.serverThreads = serverThreads;
 	}
 
-	public HashMap<String,List<Email>> getEmails() {
+	public HashMap<String, List<Email>> getEmails() {
 		return emails;
 	}
 
-	public void setEmails(HashMap<String,List<Email>> emails) {
+	public void setEmails(HashMap<String, List<Email>> emails) {
 		this.emails = emails;
 	}
 }

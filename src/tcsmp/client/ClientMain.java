@@ -56,12 +56,9 @@ public class ClientMain {
 //			System.exit(0);
 //		}
 
-		try {
-			Client client = new Client(email, hp);
-			client.start();
-		} catch (IOException | ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		Client client = new Client(email, hp);
+		client.start();
+
 		in.close();
 	}
 

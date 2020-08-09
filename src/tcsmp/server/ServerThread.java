@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import tcsmp.exceptions.RegistrationException;
+import tcsmp.puzzle.Puzzle;
 import tcsmp.utils.DataUtils;
 import tcsmp.utils.Email;
 import tcsmp.utils.HostPort;
@@ -24,8 +25,8 @@ public class ServerThread extends Thread {
 	private Socket socket;
 	private DataInputStream in;
 	private DataOutputStream out;
-	private ObjectInputStream objectIn;
-	private ObjectOutputStream objectOut;
+//	private ObjectInputStream objectIn;
+//	private ObjectOutputStream objectOut;
 
 	public ServerThread(Socket link, Server server) {
 		this.socket = link;
@@ -34,8 +35,8 @@ public class ServerThread extends Thread {
 		try {
 			in = new DataInputStream(socket.getInputStream());
 			out = new DataOutputStream(socket.getOutputStream());
-			objectOut = new ObjectOutputStream(socket.getOutputStream());
-			objectIn = new ObjectInputStream(socket.getInputStream());
+//			objectOut = new ObjectOutputStream(socket.getOutputStream());
+//			objectIn = new ObjectInputStream(socket.getInputStream());
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -51,105 +52,130 @@ public class ServerThread extends Thread {
 			String[] tokens = message_in.split(":");
 
 			if (tokens[0].equals("Server-Domain")) {
-				email = tokens[2];
 				isServer = true;
-				out.writeUTF("Checking if " + tokens[1] + " exist...");
-			}
-
-			else if (!tokens[0].equals("Register")) {
-				System.out.println("Registration not established!");
-				out.writeUTF("Registration not established!");
-				throw new RegistrationException();
+				String[] emailArray = tokens[3].split(";", 4);
+				String email = emailArray[1];
+				String subject = emailArray[2];
+				String content = emailArray[3];
+				
+				boolean found = server.getEmails().containsKey(email);
+				out.writeBoolean(found);
+				
+				System.out.println("Checking if " + tokens[1] + " exist...");
+				if(found) {
+					Email emailObj = new Email(email, tokens[2], subject, content);
+					server.getEmails().get(email).add(emailObj);
+					System.out.println("server.getEmails() = " + server.getEmails());
+					out.writeUTF("Email sent succesfully!");
+				}
+				
 			} else {
-				email = tokens[1];
-				out.writeUTF("REGISTRATION OK - " + email);
-				server.getEmails().put(email, new ArrayList<Email>());
-			}
-			System.out.println(email);
-
-//			email = tokens[1] + "@" + server.getDomainName();
-//<<<<<<< HEAD
-//			email = tokens[1];
-//			out.writeUTF("REGISTRATION OK - " + email);
-//			server.getEmails().put(email, new ArrayList<Email>());
-//			
-//			do {
-//				message_in = in.readUTF();
-//				tokens = message_in.split(":", 4);
-//=======
-//>>>>>>> 370e42926b648855ca5a4ee1f000c998431643e8
-
-			do {
-				if (isServer == false) {
-					message_in = in.readUTF();
-					tokens = message_in.split(":", 4);
+				if (tokens[0].equals("Register")) {
+					email = tokens[1];
+					System.out.println("REGISTRATION OK - " + email);
+					out.writeUTF("REGISTRATION OK - " + email);
+					server.getEmails().put(email, new ArrayList<Email>());
 				} else {
-					tokens = tokens[3].split(";", 4);
-					isServer = false;
+					System.out.println("Registration not established!");
+					out.writeUTF("Registration not established!");
+					throw new RegistrationException();
 				}
 
-				if (message_in.equals("END")) {
-					System.out.println("Bye bye!");
-					break;
-				} else if (tokens[0].equals("Message")) {
-					Email emailObj = (Email) objectIn.readObject();
-					System.out.println("Email = " + emailObj);
-					String dest = tokens[1];
+				do {
 
-					boolean found = false;
-					String[] destinationEmail = dest.split("@", 2);
-					String[] hostEmail = email.split("@", 2);
+//					if (isServer == false) {
+						message_in = in.readUTF();
+						tokens = message_in.split(":", 4);
+//					} else {
+//						tokens = tokens[3].split(";", 4);
+//						isServer = false;
+//					}
 
-					if (!destinationEmail[1].equals(hostEmail[1])) {
-						String responseFromServer;
-						try {
-							HostPort destinationHP = DataUtils.servers.get(destinationEmail[1]);
-							HostPort hostPort = DataUtils.servers.get(hostEmail[1]);
+					if (message_in.equals("END")) {
+						System.out.println("Bye bye!");
+						break;
+					} else if (tokens[0].equals("Message")) {
+//						Email emailObj = (Email) objectIn.readObject();
+						String dest = tokens[1];
+						String subject = tokens[2];
+						String content = tokens[3];
+						Email emailObj = new Email(dest, email, subject, content);
+						System.out.println("Email = " + emailObj);
 
-							// Create new Socket with the destination host/port and then send the email to
-							// the destination server
-							Socket socketServer = new Socket(destinationHP.getHost(), destinationHP.getPort());
-							DataOutputStream serverOut = new DataOutputStream(socketServer.getOutputStream());
-							System.out.println("Sending Email to " + dest + " AT port " + destinationHP.getPort());
-							String message_out = "Server-Domain:" + dest + ":" + email + ":" + String.join(";", tokens);
-							serverOut.writeUTF(message_out);
-							out.writeUTF("Client not found trying to communicate with " + dest);
+						boolean found = false;
+						String[] destinationEmail = dest.split("@", 2);
+						String[] hostEmail = email.split("@", 2);
 
-							DataInputStream serverIn = new DataInputStream(socketServer.getInputStream());
-							responseFromServer = serverIn.readUTF();
-							System.out.println("response " + responseFromServer);
-						} catch (IOException ex) {
-							ex.printStackTrace();
+						if (!destinationEmail[1].equals(hostEmail[1])) {
+							String responseFromServer;
+							try {
+								HostPort destinationHP = DataUtils.servers.get(destinationEmail[1]);
+								HostPort hostPort = DataUtils.servers.get(hostEmail[1]);
+
+								// Create new Socket with the destination host/port and then send the email to
+								// the destination server
+								Socket socketServer = new Socket(destinationHP.getHost(), destinationHP.getPort());
+								DataOutputStream serverOut = new DataOutputStream(socketServer.getOutputStream());
+								System.out.println("Sending Email to " + dest + " AT port " + destinationHP.getPort());
+								String message_out = "Server-Domain:" + dest + ":" + email + ":" + String.join(";", tokens);
+								serverOut.writeUTF(message_out);
+								//out.writeUTF("Trying to communicate with " + dest);
+
+								DataInputStream serverIn = new DataInputStream(socketServer.getInputStream());
+								
+								boolean foundOnSecondServer = serverIn.readBoolean();
+								if(foundOnSecondServer) {						
+									found = true;
+									responseFromServer = serverIn.readUTF();
+									out.writeUTF("Response = " + responseFromServer);
+									//TODO wait for puzzle
+								}
+							} catch (IOException ex) {
+								ex.printStackTrace();
+							}
+						} else {
+							found = server.getEmails().containsKey(dest);
+							System.out.println("found = " + found);
+							if (found) {
+//								//generate puzzle
+//								Puzzle puzzle = Puzzle.generatePuzzle();
+//								//send it to client
+//								objectOut.writeObject(puzzle);
+//								
+//								//wait for client solution
+//								boolean correct = false;
+//								String answer = "";
+//								do{
+//									objectOut.writeUTF("Puzzle");
+//									answer = objectIn.readUTF().toUpperCase().trim();
+//									correct = puzzle.matches(answer);
+//								} while (!correct || answer.equals("cancel"));
+//								
+//								if(correct) {
+								server.getEmails().get(dest).add(emailObj);
+								System.out.println("server.getEmails() = " + server.getEmails());
+//								}
+
+							}
 						}
-					} else {
-						found = server.getEmails().containsKey(dest);
-						System.out.println("found = " + found);
-						if(found) {
-							server.getEmails().get(dest).add(emailObj);
-							System.out.println("server.getEmails() = " + server.getEmails());
-						} 
-//						for (ServerThread c : server.getServerThreads()) {
-//							if (c.email.equals(dest)) {
-//								found = true;
-////							c.out.writeUTF("Email = " + email);
-////							c.out.writeUTF("Message from " + dest + " :\n" + "Subject: " + tokens[2] + "\n" + tokens[3]);
-//								break;
-//							}
-//							out.writeUTF("Email has been sent...");
-//						}
+						if (!found) {
+							out.writeUTF("Client not found");
+						}
+					} else if (tokens[0].equals("Refresh")) {
+						out.writeUTF("Refresh");
+						ArrayList<Email> emails = (ArrayList<Email>) server.getEmails().get(email);
+						System.out.println("emails = " + emails);
+						out.writeInt(emails.size());
+						for (Email email : emails) {
+							out.writeUTF(email.getTo());
+							out.writeUTF(email.getFrom());
+							out.writeUTF(email.getSubject());
+							out.writeUTF(email.getContent());
+						}
 					}
-					if (!found) {
-						objectOut.writeUTF("Client not found");
-					}
-				} else if (tokens[0].equals("Refresh")) {
-					objectOut.writeUTF("Refresh");
-					ArrayList<Email> emails = (ArrayList<Email>) server.getEmails().get(email);
-					System.out.println("emails = " + emails);
-					objectOut.writeObject(emails.clone());
-//					objectOut.close();
-				}
-			} while (true);
-
+				} while (true);
+				
+			}
 			closeconnection();
 
 		} catch (EOFException ex1) {
@@ -160,9 +186,6 @@ public class ServerThread extends Thread {
 			closeconnection();
 		} catch (IOException ex) {
 			ex.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			System.out.println("ClassNotFoundException");
-			e.printStackTrace();
 		}
 	}
 
