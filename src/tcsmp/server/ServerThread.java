@@ -87,7 +87,9 @@ public class ServerThread extends Thread {
 					}
 				}  else if (tokens[0].equals("Refresh")) {
 					objectOut.writeUTF("Refresh");
-					objectOut.writeObject(server.getEmails().get(email));
+					ArrayList<Email> emails = (ArrayList<Email>) server.getEmails().get(email);
+					System.out.println("emails = " + emails);
+					objectOut.writeObject(emails.clone());
 //					objectOut.close();
 				}
 			} while (true);

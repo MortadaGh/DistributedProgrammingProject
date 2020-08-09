@@ -37,10 +37,11 @@ class ClientThread extends Thread {
 				String message_in = objectIn.readUTF();
 				if (message_in.equals("Refresh")) {
 					ArrayList<Email> emails = (ArrayList<Email>) objectIn.readObject();
+					System.out.println("emails = " + emails);
 					client.setEmails(emails);
-					emails.forEach(email -> {
-						System.out.println(email);
-					});
+//					emails.forEach(email -> {
+//						System.out.println(email);
+//					});
 				} else {
 				System.out.println(message_in);
 				}

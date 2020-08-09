@@ -89,6 +89,7 @@ public class Client {
 				message_out += ":" + cname + ":" + subject + ":" + content;
 				out.writeUTF(message_out);
 				objectOut.writeObject(new Email(cname, subject, content));
+				
 				// TODO wait for puzzle..
 				break;
 			case "Refresh":
