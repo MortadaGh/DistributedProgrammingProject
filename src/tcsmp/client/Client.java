@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import tcsmp.puzzle.Puzzle;
 import tcsmp.utils.Email;
 import tcsmp.utils.HostPort;
 
@@ -94,6 +95,8 @@ public class Client implements Serializable {
 //					out.writeObject(new Email(cname, subject, content));
 
 					// wait for puzzle..
+					String answer = input.nextLine().toUpperCase().trim();
+					out.writeUTF(answer);
 //					Puzzle puzzle = (Puzzle) in.readObject();
 //					System.out.println("Solve this puzzle: " + puzzle.toString());
 //					System.out.print("Answer: ");

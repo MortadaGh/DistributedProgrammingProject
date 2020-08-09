@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import tcsmp.puzzle.Puzzle;
@@ -38,11 +39,11 @@ class ClientThread extends Thread {
 	}
 
 	public void run() {
-		Scanner scanner = new Scanner(System.in);
+		Scanner input = new Scanner(System.in);
 		while (true) {
 			try {
 				String message_in = in.readUTF();
-				if (message_in.toLowerCase().equals("refresh")) {
+				if (message_in.equals("Refresh")) {
 					// TODO
 //					ArrayList<Email> emails = (ArrayList<Email>) in.readObject();
 					ArrayList<Email> emails = new ArrayList<Email>();
@@ -55,13 +56,18 @@ class ClientThread extends Thread {
 						Email email = new Email(to, from, subject, content);
 						emails.add(email);
 					}
-
 					System.out.println("emails = " + emails);
 					client.setEmails(emails);
-
-//					emails.forEach(email -> {
-//						System.out.println(email);
-//					});
+				} else if(message_in.toLowerCase().startsWith("puzzle")){
+					String puzzleString = message_in.split(":")[2].toUpperCase().trim();
+//					System.out.println("message_in.split(\":\") = " + Arrays.toString(message_in.split(":")));
+//					System.out.println("puzzleString = " + puzzleString);
+					Puzzle puzzle = Puzzle.parse(puzzleString);
+//					System.out.println("puzzle = " + puzzle);
+					System.out.println("Solve this Puzzle: " + puzzle.toString());
+					System.out.print("Answer: ");
+//					String answer = input.nextLine().toUpperCase().trim();
+//					out.writeUTF(answer);
 				} else {
 					System.out.println(message_in);
 				}
