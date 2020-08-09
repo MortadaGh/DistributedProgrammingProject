@@ -48,8 +48,7 @@ public class Server implements Runnable {
 				serverThreads.add(serverThread);
 				clientsSockets.add(link);
 
-				serverThread.start();
-
+				serverThread.start();				
 				System.out.println("Clients # = " + clientsSockets.size());
 			}
 		} catch (IOException ex) {

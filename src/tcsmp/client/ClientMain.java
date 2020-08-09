@@ -11,7 +11,7 @@ public class ClientMain {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
 
-		System.out.println("TEST : " + DataUtils.servers);
+		//System.out.println("TEST : " + DataUtils.servers);
 
 		// Register
 		System.out.print("Enter your email: ");
