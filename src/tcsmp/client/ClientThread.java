@@ -43,7 +43,7 @@ class ClientThread extends Thread {
 //						System.out.println(email);
 //					});
 				} else {
-				System.out.println(message_in);
+					System.out.println(message_in);
 				}
 			} catch (SocketException ex) {
 				break;
