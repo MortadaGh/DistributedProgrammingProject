@@ -2,6 +2,8 @@ package tcsmp.client;
 
 import static java.lang.System.exit;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -37,10 +39,10 @@ public class Client {
 
 		try {
 			socket = new Socket(host, port);
-			in = new DataInputStream(socket.getInputStream());
-			out = new DataOutputStream(socket.getOutputStream());
-			objectOut = new ObjectOutputStream(socket.getOutputStream());
-			objectIn = new ObjectInputStream(socket.getInputStream());
+			objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+			objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+//			in = new DataInputStream(socket.getInputStream());
+//			out = new DataOutputStream(socket.getOutputStream());
 		} catch (IOException ex) {
 			System.out.println("Host not reachable!");
 			exit(0);
@@ -55,8 +57,8 @@ public class Client {
 //		String req = "Register:" + name;
 		String req = "Register:" + email;
 
-		out.writeUTF(req);
-		message_in = in.readUTF();
+		objectOut.writeUTF(req);
+		message_in = objectIn.readUTF();
 		if (!message_in.startsWith("REGISTRATION OK")) {
 			System.out.println(message_in);
 			socket.close();
@@ -93,7 +95,7 @@ public class Client {
 				// TODO wait for puzzle..
 				break;
 			case "Refresh":
-				out.writeUTF("Refresh");
+				objectOut.writeUTF("Refresh");
 //				ArrayList<Email> emails = (ArrayList<Email>) objectIn.readObject();
 				break;
 			default:

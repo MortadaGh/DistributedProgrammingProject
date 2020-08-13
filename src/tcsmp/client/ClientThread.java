@@ -1,5 +1,6 @@
 package tcsmp.client;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -21,10 +22,10 @@ class ClientThread extends Thread {
 		this.link = link;
 		this.client = client;
 		try {
-			in = new DataInputStream(link.getInputStream());
-//		in = client.getIn();
+//			in = new DataInputStream(link.getInputStream());
+//			in = client.getIn();
 //			objectOut = new ObjectOutputStream(link.getOutputStream());
-//			objectIn = new ObjectInputStream(link.getInputStream());
+			objectIn = new ObjectInputStream(new BufferedInputStream(link.getInputStream()));
 			objectIn = client.getObjectIn();
 		} catch (IOException ex) {
 			ex.printStackTrace();

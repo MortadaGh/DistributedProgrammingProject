@@ -1,5 +1,7 @@
 package tcsmp.server;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -32,10 +34,10 @@ public class ServerThread extends Thread {
 		this.server = server;
 
 		try {
-			in = new DataInputStream(socket.getInputStream());
-			out = new DataOutputStream(socket.getOutputStream());
-			objectOut = new ObjectOutputStream(socket.getOutputStream());
-			objectIn = new ObjectInputStream(socket.getInputStream());
+			objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+			objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+//			in = new DataInputStream(socket.getInputStream());
+//			out = new DataOutputStream(socket.getOutputStream());
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -46,26 +48,27 @@ public class ServerThread extends Thread {
 		Boolean isServer = false;
 
 		try {
-			message_in = in.readUTF();
-//			String[] tokens = message_in.split(":", 2);
+			System.out.println("reading...");
+			message_in = objectIn.readUTF();
+			System.out.println(message_in);
+			
 			String[] tokens = message_in.split(":");
 
 			if (tokens[0].equals("Server-Domain")) {
 				email = tokens[2];
+				objectOut.writeUTF("Checking if " + tokens[1] + " exist...");
+				System.out.println("Server-Domain: "+ email);
 				isServer = true;
-				out.writeUTF("Checking if " + tokens[1] + " exist...");
 			}
-
-			else if (!tokens[0].equals("Register")) {
-				System.out.println("Registration not established!");
-				out.writeUTF("Registration not established!");
-				throw new RegistrationException();
-			} else {
+			if (tokens[0].equals("Register")) {
 				email = tokens[1];
-				out.writeUTF("REGISTRATION OK - " + email);
+				objectOut.writeUTF("REGISTRATION OK - " + email);
 				server.getEmails().put(email, new ArrayList<Email>());
+			} else {
+				System.out.println("Registration not established!");
+				objectOut.writeUTF("Registration not established!");
+				throw new RegistrationException();
 			}
-			System.out.println(email);
 
 //			email = tokens[1] + "@" + server.getDomainName();
 //<<<<<<< HEAD
@@ -83,9 +86,12 @@ public class ServerThread extends Thread {
 				if (isServer == false) {
 					message_in = in.readUTF();
 					tokens = message_in.split(":", 4);
+					System.out.println("not server");
 				} else {
 					tokens = tokens[3].split(";", 4);
-					isServer = false;
+					System.out.println("server " + tokens[3]);
+					System.out.println(isServer);
+					//isServer = false;
 				}
 
 				if (message_in.equals("END")) {
@@ -113,7 +119,7 @@ public class ServerThread extends Thread {
 							System.out.println("Sending Email to " + dest + " AT port " + destinationHP.getPort());
 							String message_out = "Server-Domain:" + dest + ":" + email + ":" + String.join(";", tokens);
 							serverOut.writeUTF(message_out);
-							out.writeUTF("Client not found trying to communicate with " + dest);
+							objectOut.writeUTF("Client not found trying to communicate with " + dest);
 
 							DataInputStream serverIn = new DataInputStream(socketServer.getInputStream());
 							responseFromServer = serverIn.readUTF();
@@ -127,6 +133,9 @@ public class ServerThread extends Thread {
 						if(found) {
 							server.getEmails().get(dest).add(emailObj);
 							System.out.println("server.getEmails() = " + server.getEmails());
+							if(isServer) {
+								isServer = false;
+							}
 						} 
 //						for (ServerThread c : server.getServerThreads()) {
 //							if (c.email.equals(dest)) {
