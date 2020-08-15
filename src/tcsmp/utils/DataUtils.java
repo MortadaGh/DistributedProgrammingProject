@@ -1,5 +1,6 @@
 package tcsmp.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -10,10 +11,10 @@ public class DataUtils {
 	private static final String zeroTo255 = "(\\d{1,2}|(0|1)\\" + "d{2}|2[0-4]\\d|25[0-5])";
 	public static final String IP_PATTERN = zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255 + "\\." + zeroTo255;
 	public static final String EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
-
+	public static ArrayList<Email> HelloEmail = new ArrayList<Email>();
 	static {
-		servers.put("kardon.com", new HostPort("localhost", 1234));
-		servers.put("mg.com", new HostPort("localhost", 1235));
+		servers.put("gmail.com", new HostPort("localhost", 1234));
+		servers.put("hotmail.com", new HostPort("localhost", 1235));
 	}
 	
 	public static String generateRandomChar() {

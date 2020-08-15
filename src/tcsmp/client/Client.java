@@ -10,6 +10,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import tcsmp.application.ClientMain;
+import tcsmp.controller.AlertController;
 import tcsmp.puzzle.Puzzle;
 import tcsmp.utils.Email;
 import tcsmp.utils.HostPort;
@@ -31,7 +35,7 @@ public class Client implements Serializable {
 	private String message_in;
 	private String message_out;
 
-	private ArrayList<Email> emails;
+	private ArrayList<Email> emails = new ArrayList<Email>();
 
 	public Client(String email, HostPort hp) {
 		this.email = email;
@@ -42,94 +46,101 @@ public class Client implements Serializable {
 			socket = new Socket(host, port);
 			in = new DataInputStream(socket.getInputStream());
 			out = new DataOutputStream(socket.getOutputStream());
-//			objectOut = new ObjectOutputStream(socket.getOutputStream());
-//			objectIn = new ObjectInputStream(socket.getInputStream());
 		} catch (IOException ex) {
-			System.out.println("Host not reachable!");
-			exit(0);
+			AlertController.error("Server is not reachable!");
 		}
 	}
+	
+	public ObservableList<Email> getEmailsForUI(){
+		ObservableList<Email> messages = FXCollections.observableArrayList();
+		String[] domainName = ClientMain.current_user.getEmail().split("@");
+		String body = "Welcome "+ ClientMain.current_user.getEmail() + " to the TCSMP project\nThis Project is made by: \nMortada Ghanem 91907\nHassan Assaad 86296\n\nRegards";
+		messages.add(new Email(ClientMain.current_user.getEmail(),"Server@"+domainName[1],"Welcome Email", body));
+		
+		for(int i=0; i < this.emails.size(); i++) {
+			Email email = this.emails.get(i);
+			messages.add(email);
+		}
+		return messages;
+	}
 
-	public void start() {
-		Scanner input = new Scanner(System.in);
-		try {
-
-//			System.out.println("Please Enter your name:");
-//			String name = input.nextLine();
-//			String req = "Register:" + name;
-			String req = "Register:" + email;
-
-			out.writeUTF(new String(req));
-
-			message_in = in.readUTF();
-			if (!message_in.startsWith("REGISTRATION OK")) {
-				System.out.println(message_in);
-				socket.close();
-				exit(0);
-			}
-
-			System.out.println(message_in);
-
-			ClientThread cl = new ClientThread(socket, this);
-			cl.start();
-
-			System.out.println("To close the connection, enter END\n" + "To Message a client, enter Message\n"
-					+ "To Refresh Messages, enter Refresh");
-			message_out = input.nextLine();
-
-			while (!message_out.equals("END")) {
-
-				switch (message_out) {
-				case "Message":
-					System.out.print("Enter the destination email: ");
-					String cname = input.nextLine().trim();
-
-					System.out.print("Enter the subject: ");
-					String subject = input.nextLine().trim();
-
-					System.out.println("Enter the content of your message to send: ");
-					String content = input.nextLine().trim();
-
-					message_out += ":" + cname + ":" + subject + ":" + content;
-					out.writeUTF(message_out);
-//					out.writeObject(new Email(cname, subject, content));
-
-					// wait for puzzle..
-					String answer = input.nextLine().toUpperCase().trim();
-					out.writeUTF(answer);
-//					Puzzle puzzle = (Puzzle) in.readObject();
-//					System.out.println("Solve this puzzle: " + puzzle.toString());
-//					System.out.print("Answer: ");
+//	public void start() {
+//		Scanner input = new Scanner(System.in);
+//		try {
+//
+//			String req = "Register:" + email;
+//
+//			out.writeUTF(new String(req));
+//
+//			message_in = in.readUTF();
+//			if (!message_in.startsWith("REGISTRATION OK")) {
+//				System.out.println(message_in);
+//				socket.close();
+//				exit(0);
+//			}
+//
+//			System.out.println(message_in);
+//
+//			ClientThread cl = new ClientThread(socket, this);
+//			cl.start();
+//
+//			System.out.println("To close the connection, enter END\n" + "To Message a client, enter Message\n"
+//					+ "To Refresh Messages, enter Refresh");
+//			message_out = input.nextLine();
+//
+//			while (!message_out.equals("END")) {
+//
+//				switch (message_out) {
+//				case "Message":
+//					System.out.print("Enter the destination email: ");
+//					String cname = input.nextLine().trim();
+//
+//					System.out.print("Enter the subject: ");
+//					String subject = input.nextLine().trim();
+//
+//					System.out.println("Enter the content of your message to send: ");
+//					String content = input.nextLine().trim();
+//
+//					message_out += ":" + cname + ":" + subject + ":" + content;
+//					out.writeUTF(message_out);
+////					out.writeObject(new Email(cname, subject, content));
+//
+//					// wait for puzzle..
 //					String answer = input.nextLine().toUpperCase().trim();
-
 //					out.writeUTF(answer);
-					break;
-				case "Refresh":
-					out.writeUTF("Refresh");
-//					ArrayList<Email> emails = (ArrayList<Email>) objectIn.readObject();
-					break;
-				default:
-					System.out.println("The command is incorrect please enter again.");
-					break;
-				}
-
-				System.out.println("To close the connection, enter END\n" + "To Send a message, enter Message\n"
-						+ "To Refresh Messages, enter Refresh");
-				message_out = input.nextLine();
-
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			input.close();
-			System.out.println("Connection is closing...");
-			socket.close();
-			System.out.println("Connection succesfully closed...");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+////					Puzzle puzzle = (Puzzle) in.readObject();
+////					System.out.println("Solve this puzzle: " + puzzle.toString());
+////					System.out.print("Answer: ");
+////					String answer = input.nextLine().toUpperCase().trim();
+//
+////					out.writeUTF(answer);
+//					break;
+//				case "Refresh":
+//					out.writeUTF("Refresh");
+////					ArrayList<Email> emails = (ArrayList<Email>) objectIn.readObject();
+//					break;
+//				default:
+//					System.out.println("The command is incorrect please enter again.");
+//					break;
+//				}
+//
+//				System.out.println("To close the connection, enter END\n" + "To Send a message, enter Message\n"
+//						+ "To Refresh Messages, enter Refresh");
+//				message_out = input.nextLine();
+//
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		try {
+//			input.close();
+//			System.out.println("Connection is closing...");
+//			socket.close();
+//			System.out.println("Connection succesfully closed...");
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	public Socket getSocket() {
 		return socket;
@@ -201,5 +212,9 @@ public class Client implements Serializable {
 
 	public void setEmails(ArrayList<Email> emails) {
 		this.emails = emails;
+	}
+	
+	public Client getClient() {
+		return this;
 	}
 }

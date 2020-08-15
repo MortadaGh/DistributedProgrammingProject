@@ -10,10 +10,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import tcsmp.application.ClientMain;
+import tcsmp.controller.ComposeController;
+import tcsmp.controller.PuzzleController;
 import tcsmp.puzzle.Puzzle;
 import tcsmp.utils.Email;
 
-class ClientThread extends Thread {
+public class ClientThread extends Thread {
 
 	private Client client;
 	private Socket link;
@@ -43,9 +46,8 @@ class ClientThread extends Thread {
 		while (true) {
 			try {
 				String message_in = in.readUTF();
+				String[] tokens = message_in.split(":");
 				if (message_in.equals("Refresh")) {
-					// TODO
-//					ArrayList<Email> emails = (ArrayList<Email>) in.readObject();
 					ArrayList<Email> emails = new ArrayList<Email>();
 					int size = in.readInt();
 					for (int i = 0; i < size; i++) {
@@ -56,19 +58,21 @@ class ClientThread extends Thread {
 						Email email = new Email(to, from, subject, content);
 						emails.add(email);
 					}
-					System.out.println("emails = " + emails);
-					client.setEmails(emails);
-				} else if(message_in.toLowerCase().startsWith("puzzle")){
-					String puzzleString = message_in.split(":")[2].toUpperCase().trim();
-//					System.out.println("message_in.split(\":\") = " + Arrays.toString(message_in.split(":")));
-//					System.out.println("puzzleString = " + puzzleString);
-					Puzzle puzzle = Puzzle.parse(puzzleString);
-//					System.out.println("puzzle = " + puzzle);
-					System.out.println("Solve this Puzzle: " + puzzle.toString());
-					System.out.print("Answer: ");
-//					String answer = input.nextLine().toUpperCase().trim();
-//					out.writeUTF(answer);
-				} else {
+					ClientMain.current_user.setEmails(emails);
+				} else if(tokens[0].equals("puzzle")){
+					Puzzle puzzle = new Puzzle(tokens[1].toCharArray());
+			    	PuzzleController.p = puzzle;
+				} else if(tokens[0].equals("Success")) {
+					PuzzleController.correctPuzzel = true;
+					System.out.println(tokens[1]);
+				}
+				else if(tokens[0].equals("Failed")) {
+					PuzzleController.correctPuzzel = false;
+					System.out.println(tokens[1]);
+				} else if(tokens[0].equals("NotFound")) {
+					ComposeController.clientFound = false;
+				}
+				else {
 					System.out.println(message_in);
 				}
 			} catch (SocketException ex) {

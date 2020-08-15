@@ -60,24 +60,26 @@ public class ServerThread extends Thread {
 				
 				boolean found = server.getEmails().containsKey(email);
 				out.writeBoolean(found);
-				
-//				System.out.println("Checking if " + tokens[1] + " exist...");
-				
+								
 				if(found) {
 					Email emailObj = new Email(email, tokens[2], subject, content);
 					
 					//generate puzzle
-					Puzzle puzzle = Puzzle.generatePuzzle();
+					Puzzle puzzle = new Puzzle();
+					puzzle.generate();
+					System.out.println("NOT MIXED: "+ puzzle.toString());
+					puzzle.mix();
+					System.out.println("MIXED: "+ puzzle.toString());
 					out.writeUTF("puzzle:"+puzzle.toString());
 					String answer = in.readUTF();
-					boolean correct = puzzle.matches(answer);
-					
+					System.out.println("Answer:" + answer);
+					boolean correct = puzzle.verify(answer);
+					System.out.println(correct);
 					if(correct) {
 						server.getEmails().get(email).add(emailObj);
-						System.out.println("server.getEmails() = " + server.getEmails());
-						out.writeUTF("Email sent succesfully!");
+						out.writeUTF("Success:Email sent succesfully!");
 					} else {
-						out.writeUTF("Email not sent!");
+						out.writeUTF("Failed:Email not sent!");
 					}					
 				}
 			} else {
@@ -93,19 +95,14 @@ public class ServerThread extends Thread {
 				}
 
 				do {
-//					if (isServer == false) {
 						message_in = in.readUTF();
 						tokens = message_in.split(":", 4);
-//					} else {
-//						tokens = tokens[3].split(";", 4);
-//						isServer = false;
-//					}
+
 
 					if (message_in.equals("END")) {
 						System.out.println("Bye bye!");
 						break;
 					} else if (tokens[0].equals("Message")) {
-//						Email emailObj = (Email) objectIn.readObject();
 						String dest = tokens[1];
 						String subject = tokens[2];
 						String content = tokens[3];
@@ -141,7 +138,7 @@ public class ServerThread extends Thread {
 									String puzzleString = serverIn.readUTF();
 									
 									//send puzzle to the client to solve it
-									out.writeUTF("puzzle:" + puzzleString);
+									out.writeUTF(puzzleString);
 									
 									//wait client answer
 									String answer = in.readUTF();
@@ -153,19 +150,19 @@ public class ServerThread extends Thread {
 									responseFromServer = serverIn.readUTF();
 									
 									//notify the client
-									out.writeUTF("Response = " + responseFromServer);
+									out.writeUTF(responseFromServer);
 								}
 							} catch (IOException ex) {
 								ex.printStackTrace();
 							}
 						} else {
 							found = server.getEmails().containsKey(dest);
-							System.out.println("found = " + found);
 							if (found) {
 								//generate puzzle
-								Puzzle puzzle = Puzzle.generatePuzzle();
+								Puzzle puzzle = new Puzzle();
+								puzzle.generate();
+								puzzle.mix();
 								//send it to client
-								
 								//wait for client solutions
 								boolean correct = false;
 								String answer = "";
@@ -173,20 +170,21 @@ public class ServerThread extends Thread {
 								out.writeUTF("puzzle:"+puzzle.toString());
 								System.out.println("Puzzle sent to client : " + puzzle);
 								answer = in.readUTF();
-								correct = puzzle.matches(answer);
+								correct = puzzle.verify(answer);
 //								} while (!correct || answer.equals("cancel"));
 								
 								if(correct) {
 									server.getEmails().get(dest).add(emailObj);
 									System.out.println("server.getEmails() = " + server.getEmails());
+									out.writeUTF("Success:Email sent succesfully!");
 								} else {
-									out.writeUTF("Email not sent!");
-								}
+									out.writeUTF("Failed:Email not sent!");
+								}	
 
 							}
 						}
 						if (!found) {
-							out.writeUTF("Client not found");
+							out.writeUTF("NotFound:Client not found");
 						}
 					} else if (tokens[0].equals("Refresh")) {
 						out.writeUTF("Refresh");

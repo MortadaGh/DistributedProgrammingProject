@@ -1,82 +1,101 @@
 package tcsmp.puzzle;
 
-import java.io.Serializable;
+import java.util.Random;
 
-import tcsmp.utils.DataUtils;
-
-public class Puzzle implements Serializable {
-
-	private static final long serialVersionUID = 1823470850612325234L;
+public class Puzzle {
 	
-	private Block[] blocks;
-
-	public Puzzle(Block[] blocks) {
-		this.blocks = blocks;
+	public char []bytes;
+	public static String hash;
+	
+	//server
+	public Puzzle() {
+		bytes = new char[36];
+		for(int i=0;i<36;i++) {
+			bytes[i] = '0';
+		}
+	}
+	
+	//client
+	public Puzzle(char[]c) {
+		bytes = new char[36];
+		for(int i=0;i<36;i++) {
+			bytes[i] = (char)c[i];
+		}
+	}
+	
+	
+	//server
+	public void generate() {
+		int n = 2,s = 12;
+		Random r = new Random();
+		while(s < 33) {
+			char c = (char) r.nextInt(26);
+			c+='A';
+			bytes[n] = c;
+			bytes[s] = c;
+			n+=4;
+			s+=4;
+		}
+		int e = 1,w = 7;
+		while(w < 36) {
+			char c = (char) r.nextInt(26);
+			c+='A';
+			bytes[e] = c;
+			bytes[w] = c;
+			e+=4;
+			w+=4;
+		}
+		for(int i=0;i<36;i++) {
+			if(bytes[i] == '0') {
+				bytes[i] = (char) (r.nextInt(26) + 'A');
+			}
+		}
+		hash = toString();
 	}
 
-	public Block[] getBlocks() {
-		return blocks;
+	//both
+	public char charAt(int i) {
+		return bytes[i];
+	}
+	
+	
+	//server
+	public void mix() {
+		Random r = new Random();
+		for(int i=0;i<9;i++) {
+			int times = r.nextInt(4);
+			for(int j=0;j<times;j++) {				
+				move(i);
+			}
+		}
+		
+	}
+	
+	//both
+	public void move(int i) {
+		int pos = i*4;
+		char n = charAt(pos);
+		char e = charAt(pos +1);
+		char s = charAt(pos +2);
+		char w = charAt(pos +3);
+		bytes[pos] = w;
+		bytes[pos+1] = n;
+		bytes[pos +2] = e;
+		bytes[pos+3] = s;
 	}
 
-	public void setBlocks(Block[] blocks) {
-		this.blocks = blocks;
+	//server
+	public boolean verify(String answer) {
+		return hash.equals(answer);
 	}
-
-	public Boolean matches(String s) {
-		return s == null ? false : (s.length() != 16 ? false : (!s.matches("[A-Z]*") ? false : s.equals(this.toString())));
-	}
-
+	
+	//both
 	@Override
 	public String toString() {
 		String s = "";
-		if(blocks != null) {
-			for (int i = 0; i < blocks.length; i++)
-				s += blocks[i];			
+		for(int i=0;i<36;i++) {
+			s+=bytes[i];
 		}
 		return s;
 	}
-
-	public static Puzzle parse(String s) {
-		if(s != null && s.length() == 16) {
-			Block[] blocks = new Block[4];
-			for(int i = 0; i < blocks.length; i++) {
-				blocks[i] = new Block(s.substring(i*4,(i*4) + 4));
-			}
-			return new Puzzle(blocks);
-		}
-		return null;
-	}
-
-	public static Puzzle generatePuzzle() {
-		// generate 4 random characters
-		String[] r = new String[4];
-		for(int i=0; i < r.length; i++) {
-			r[i] = DataUtils.generateRandomChar();
-		}
-		
-		// create 4 blocks
-		Block[] blocks = new Block[4];
-		for(int i = 0; i < blocks.length; i++) {
-			blocks[i] = new Block();
-		}
-		
-		// Rule 1
-		blocks[0].getDirections()[1] = r[0];
-		blocks[1].getDirections()[3] = r[0];
-
-		// Rule 2
-		blocks[0].getDirections()[2] = r[1];
-		blocks[2].getDirections()[0] = r[1];
-		
-		// Rule 3
-		blocks[1].getDirections()[2] = r[2];
-		blocks[3].getDirections()[0] = r[2];
-		
-		// Rule 4
-		blocks[2].getDirections()[1] = r[3];
-		blocks[3].getDirections()[3] = r[3];
-		
-		return new Puzzle(blocks);
-	}
-
 }
