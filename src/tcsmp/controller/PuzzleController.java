@@ -58,6 +58,7 @@ public class PuzzleController implements Initializable{
 		    		alert.setTitle("Send Email");
 			    	alert.setContentText("Email sent succesfully!");
 			    	alert.setHeaderText("");
+			    	ComposeController.e = null;
 			    	Optional<ButtonType> result = alert.showAndWait();
 			        if(result.get() == ButtonType.OK) {
 						TimeUnit.SECONDS.sleep(1);
@@ -67,7 +68,8 @@ public class PuzzleController implements Initializable{
 		    	else {
 		    		Alert alert = new Alert(AlertType.ERROR);
 		    		alert.setTitle("Error");
-		            alert.setContentText("Email not sent!");
+			    	alert.setHeaderText("");
+			    	alert.setContentText("Email not sent!");
 		            alert.showAndWait();
 		            ComposeController.e = this.e;
 					TimeUnit.SECONDS.sleep(1);
@@ -77,7 +79,7 @@ public class PuzzleController implements Initializable{
 				e.printStackTrace();
 			}
 		} catch (IOException e) {
-			AlertController.error("Server Error: Error while verifying puzzel");
+			AlertController.error("Server Error: Error while verifying puzzle");
 			e.printStackTrace();
 		}
     	
