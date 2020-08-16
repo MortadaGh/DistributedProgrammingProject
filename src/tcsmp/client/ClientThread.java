@@ -64,11 +64,9 @@ public class ClientThread extends Thread {
 			    	PuzzleController.p = puzzle;
 				} else if(tokens[0].equals("Success")) {
 					PuzzleController.correctPuzzel = true;
-					System.out.println(tokens[1]);
 				}
 				else if(tokens[0].equals("Failed")) {
 					PuzzleController.correctPuzzel = false;
-					System.out.println(tokens[1]);
 				} else if(tokens[0].equals("NotFound")) {
 					ComposeController.clientFound = false;
 				}

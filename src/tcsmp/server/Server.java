@@ -54,7 +54,7 @@ public class Server implements Runnable {
 				serverThreads.add(serverThread);
 				clientsSockets.add(link);
 				serverThread.start();
-				System.out.println(domainName + ": Clients # = " + clientsSockets.size());
+				System.out.println("["+ domainName + "]: Clients number = " + clientsSockets.size());
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();

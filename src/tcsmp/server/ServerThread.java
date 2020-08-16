@@ -67,29 +67,29 @@ public class ServerThread extends Thread {
 					//generate puzzle
 					Puzzle puzzle = new Puzzle();
 					puzzle.generate();
-					System.out.println("NOT MIXED: "+ puzzle.toString());
 					puzzle.mix();
-					System.out.println("MIXED: "+ puzzle.toString());
 					out.writeUTF("puzzle:"+puzzle.toString());
+					System.out.println("["+ email.split("@")[1] +"]: Generating Puzzle...");
+					System.out.println("["+ email.split("@")[1] +"]: Puzzle has been send to [" + tokens[2].split("@")[1] + "]");
 					String answer = in.readUTF();
-					System.out.println("Answer:" + answer);
 					boolean correct = puzzle.verify(answer);
-					System.out.println(correct);
 					if(correct) {
 						server.getEmails().get(email).add(emailObj);
+						System.out.println("["+ email.split("@")[1] +"]: Email has been sent succesfully to " + email);
 						out.writeUTF("Success:Email sent succesfully!");
 					} else {
+						System.out.println("["+ email.split("@")[1] +"]: Failed to sent the email to " + email);
 						out.writeUTF("Failed:Email not sent!");
 					}					
 				}
 			} else {
 				if (tokens[0].equals("Register")) {
 					email = tokens[1];
-					System.out.println("REGISTRATION OK - " + email);
+					System.out.println("["+ server.getDomainName() + "]: REGISTRATION OK - " + email);
 					out.writeUTF("REGISTRATION OK - " + email);
 					server.getEmails().put(email, new ArrayList<Email>());
 				} else {
-					System.out.println("Registration not established!");
+					System.out.println("["+ server.getDomainName() + "]: Registration not established!");
 					out.writeUTF("Registration not established!");
 					throw new RegistrationException();
 				}
@@ -97,7 +97,6 @@ public class ServerThread extends Thread {
 				do {
 						message_in = in.readUTF();
 						tokens = message_in.split(":", 4);
-
 
 					if (message_in.equals("END")) {
 						System.out.println("Bye bye!");
@@ -107,7 +106,6 @@ public class ServerThread extends Thread {
 						String subject = tokens[2];
 						String content = tokens[3];
 						Email emailObj = new Email(dest, email, subject, content);
-						System.out.println("Email = " + emailObj);
 
 						boolean found = false;
 						String[] destinationEmail = dest.split("@", 2);
@@ -123,17 +121,16 @@ public class ServerThread extends Thread {
 								// the destination server
 								Socket socketServer = new Socket(destinationHP.getHost(), destinationHP.getPort());
 								DataOutputStream serverOut = new DataOutputStream(socketServer.getOutputStream());
-								System.out.println("Sending Email to " + dest + " AT port " + destinationHP.getPort());
+								System.out.println("["+hostEmail[1] + "]: Sending Email to " + dest + " AT port " + destinationHP.getPort());
 								String message_out = "Server-Domain:" + dest + ":" + email + ":" + String.join(";", tokens);
 								serverOut.writeUTF(message_out);
-								//out.writeUTF("Trying to communicate with " + dest);
 
 								DataInputStream serverIn = new DataInputStream(socketServer.getInputStream());
 								
 								boolean foundOnSecondServer = serverIn.readBoolean();
 								if(foundOnSecondServer) {						
 									found = true;
-									
+									System.out.println("["+hostEmail[1] + "]: Asking [" + destinationEmail[1] + "] server for puzzle");
 									//ask for a puzzle from server2
 									String puzzleString = serverIn.readUTF();
 									
@@ -145,10 +142,10 @@ public class ServerThread extends Thread {
 									
 									//send answer to the server2
 									serverOut.writeUTF(answer);
-									
+
 									//wait for server2 response
 									responseFromServer = serverIn.readUTF();
-									
+									System.out.println("[" + hostEmail[1] + "]: " + responseFromServer);
 									//notify the client
 									out.writeUTF(responseFromServer);
 								}
@@ -158,6 +155,7 @@ public class ServerThread extends Thread {
 						} else {
 							found = server.getEmails().containsKey(dest);
 							if (found) {
+								System.out.println("[" + hostEmail[1] + "]: Generating Puzzle...");
 								//generate puzzle
 								Puzzle puzzle = new Puzzle();
 								puzzle.generate();
@@ -168,28 +166,32 @@ public class ServerThread extends Thread {
 								String answer = "";
 //								do{
 								out.writeUTF("puzzle:"+puzzle.toString());
-								System.out.println("Puzzle sent to client : " + puzzle);
+								System.out.println("[" + hostEmail[1] + "]: Puzzle sent to client");
 								answer = in.readUTF();
 								correct = puzzle.verify(answer);
 //								} while (!correct || answer.equals("cancel"));
 								
 								if(correct) {
 									server.getEmails().get(dest).add(emailObj);
-									System.out.println("server.getEmails() = " + server.getEmails());
+//									System.out.println("server.getEmails() = " + server.getEmails());
+									System.out.println("["+ hostEmail[1] +"]: Email has been sent succesfully to " + dest);
+
 									out.writeUTF("Success:Email sent succesfully!");
 								} else {
+									System.out.println("["+ hostEmail[1] +"]: Failed to sent the email to " + dest);
 									out.writeUTF("Failed:Email not sent!");
 								}	
 
 							}
 						}
 						if (!found) {
+							System.out.println("["+ server.getDomainName() +"]: Client with email " + dest + " is not found");
 							out.writeUTF("NotFound:Client not found");
 						}
 					} else if (tokens[0].equals("Refresh")) {
+						System.out.println("[" + server.getDomainName() + "]: " + email + " is requesting a Refresh Token");
 						out.writeUTF("Refresh");
 						ArrayList<Email> emails = (ArrayList<Email>) server.getEmails().get(email);
-						System.out.println("emails = " + emails);
 						out.writeInt(emails.size());
 						for (Email email : emails) {
 							out.writeUTF(email.getTo());

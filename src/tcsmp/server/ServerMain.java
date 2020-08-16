@@ -14,6 +14,7 @@ public class ServerMain {
 			Server server = new Server(o.getKey(), o.getValue().getPort());
 			server.start();
 		}
+		System.out.println("Server is up and running...");
 
 		/*
 		 * while (true) { Scanner in = new Scanner(System.in);
