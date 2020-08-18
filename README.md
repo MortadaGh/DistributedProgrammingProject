@@ -1,5 +1,3 @@
-# Distributed Programming Project
-
 # TCSMP - Time-Cost Stamped Mail Protocol
 
 TCSMP is a client-server protocol meant to transfer mail reliably and to make transfers time consuming.
